@@ -5,25 +5,32 @@ const path = require('path')
 const app = express();
 const html = require('html');
 const publicDir = require('path').join(__dirname, '/sass');
-const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
 
 const apiKey = '286fd9ec7bc5ead8ef86823115f5f3b9';
 
+var requestTime = function(req, res, date) { /////
+    let D = new Date();
+    let days = ['sat', 'sun', 'mon', 'tue', 'wed', 'thu', 'fri'];
+    let months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    req.requestDate = D.getDate();
+    req.requestMonth = months[D.getMonth()];
+    req.requestDay = days[D.getDay()];
+    date();
+};
+
 app.use(express.static('sass'));
 app.use(express.static(publicDir));
+app.use(requestTime); ////
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/images', express.static(__dirname + '/Images'));
 
-app.set('view engine', 'html');
+app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 app.get('/', function(req, res) {
-    res.sendfile('./index.html');
+    res.render('index', info = {});
 });
-
-global.document = new JSDOM(html).window.document;
 
 app.post('/', function(req, res) {
     let city = req.body.city;
@@ -31,31 +38,32 @@ app.post('/', function(req, res) {
 
     request(url, function(err, response, body) {
         if (err) {
-            res.sendfile('./index.html');
+            res.render('index');
         } else {
             let weather = JSON.parse(body);
             if (weather.main == undefined) {
-                res.sendfile('./index.html');
+                res.render('index');
             } else {
                 let weather = JSON.parse(body);
 
-                temp = weather.main.temp;
-                city = weather.name;
-                humi = weather.main.humidity;
-                Wspeed = weather.wind.speed;
-                country = weather.sys.country;
-
-                //document.getElementsByClassName('temp').innerHTML = (temp);
-                //global.document.getElementById("temp").textContent = 'temp';
-                res.sendfile('./index.html');
-
-                console.log(`its a ${temp} degree in ${city} - ${country} and wind speed is ${Wspeed} and ${humi} of humidity`);
+                res.render('index', info = {
+                    pressure: weather.main.pressure,
+                    temp: weather.main.temp,
+                    city: weather.name,
+                    humi: weather.main.humidity,
+                    Wspeed: weather.wind.speed,
+                    country: weather.sys.country,
+                    date: req.requestDate,
+                    month: req.requestMonth,
+                    day: req.requestDay
+                });
+                //console.log(`its a ${temp} degree in ${city} - ${country} and wind speed is ${Wspeed} and ${humi} of humidity`);
 
             }
         }
     });
 });
 
-app.listen(3000, function() {
-    console.log('Example app listening on port 3000!');
+app.listen(8000, function() {
+    console.log('Example app listening on port 8000!');
 });

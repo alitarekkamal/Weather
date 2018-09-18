@@ -1511,6 +1511,14 @@ form input[type="reset"] {
     color: #009ad8;
 }
 
+.text {
+    display: inline-block;
+    width: 50px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .main-navigation .menu {
     list-style: none;
     display: inline-block;
